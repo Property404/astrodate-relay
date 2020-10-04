@@ -24,10 +24,27 @@ app.use(function (req, res, next) {
   next();
 });
 
+const tset = new Set()
 const transactions = [];
 app.post("/api/relay/push", function(req, res)
 {
-	transactions.push(req.body);
+	for(const t of req.body)
+	{
+		if(!t.signature)
+		{
+			console.log("rejecting")
+			res.send({"status":"rejected"});
+			return;
+		}
+		if(tset.has(t.signature))
+		{
+			console.log("duplicate");
+			res.send({"status":"rejected"});
+			return;
+		}
+		transactions.push(t);
+		tset.add(t.signature);
+	}
 	console.log("Added transactions: ", req.body);
 	res.send({"status":"success"});
 });
